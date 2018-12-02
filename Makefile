@@ -16,7 +16,7 @@ OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 #All .h files
 HEADERS=$(wildcard $(IDIR)/*.h)
 
-GCC=g++
+CXX=g++
 CXXFLAGS=-std=c++17 -g -I$(IDIR)
 LDFLAGS=
 EXE=vixen2Pi
@@ -31,10 +31,10 @@ $(warning $(SRC))
 all: $(EXE)
 
 $(EXE): $(OBJ)
-	$(GCC) $(LDFLAGS) $^ -o $@
+	$(CXX) $(LDFLAGS) $^ -o $@
 
-$(OBJ): $(SRC) $(HEADERS)
-	$(GCC) $(CXXFLAGS) -c $< -o $@
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm $(OBJ_DIR)/*.o
