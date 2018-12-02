@@ -1,21 +1,34 @@
-#include <wiringPi>
+//#include <wiringPi>
 #include <fstream>
+#include <thread>
+#include <chrono>
+#include <vector>
+#include <iostream>
+#include <string>
 
+template <unsigned int NUM_CHANNELS>
 class Lights
 {
 
 public:
-	Lights(const int numOfChannels, const int delayTime, const string vixenFile);
+	Lights(int delayTime, std::string vixenFile);
 
-	bool startShow(const int startDelay = 0);
+	bool startShow(int startDelay = 0);
+
 
 private:
-	int numOfChannels;
+	//Varibles
 	int delayTime;
-	
-	ifstream csv;
+	const int MAX_CHAR_LIMIT = ((NUM_CHANNELS * 3) + (NUM_CHANNELS - 1)+4);
+	std::fstream csv;
 
-	string vixenFile;
-	
+	std::string vixenFile;
 
-}
+	std::vector<int[NUM_CHANNELS]> parsedFile;
+	
+	
+	
+	bool parseFile();
+
+
+};
