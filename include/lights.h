@@ -1,4 +1,4 @@
-//#include <wiringPi>
+#include <wiringPi.h>
 #include <fstream>
 #include <thread>
 #include <chrono>
