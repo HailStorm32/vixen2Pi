@@ -8,8 +8,17 @@ int main(int argc, const char** argv)
 
 	std::cout << "Test" << std::endl;
 
+	while(true)
+	{
+
 	digitalWrite(4, HIGH);
 
-	delay(5000);
+	delay(500);
+
+	digitalWrite(4, LOW);
+
+	delay(500);
+
+	}
 	
 }

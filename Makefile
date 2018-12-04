@@ -22,11 +22,12 @@ OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 #All .h files
 HEADERS=$(wildcard $(IDIR)/*.h)
 
-TARGET=#arm-linux-gnueabihf-
+WIRPI_LIBS =-L/usr/arm-linux-gnueabihf/lib -lm -lpthread -lrt -lcrypt
+TARGET=arm-linux-gnueabihf-
 CXX=$(TARGET)g++
 CC=$(TARGET)gcc
 CXXFLAGS=-std=c++17 -g -I$(IDIR) -I$(WIR_PI_DIR)
-LDFLAGS= -L$(WIR_PI_DIR) -lwiringPi
+LDFLAGS= -L$(WIR_PI_DIR) -lwiringPi $(WIRPI_LIBS)
 EXE=vixen2Pi
 
 .PHONY: all clean wiringPi
@@ -47,7 +48,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 wiringPi:
-	make -C $(WIR_PI_DIR) CC=$(CC)
+ifeq ($(TARGET), arm-linux-gnueabihf-)
+		make -C $(WIR_PI_DIR) CC=$(CC) LIBS=$(WIRPI_LIBS)
+else
+		make -C $(WIR_PI_DIR)
+endif
 
 clean:
 	make -C $(WIR_PI_DIR) clean
