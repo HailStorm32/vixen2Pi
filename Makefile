@@ -43,6 +43,7 @@ all: $(EXE)
 $(EXE): $(OBJ) | wiringPi
 	ln -s ~/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so* ~/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so
 	$(CXX) -o $@ $^ $(LDFLAGS)
+	rm ~/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
