@@ -4,21 +4,22 @@
 
 int main(int argc, const char** argv)
 {	
-	wiringPiSetup();
+//	wiringPiSetup();
 
-	pinMode(4, OUTPUT);
-
-
+//	pinMode(4, OUTPUT);
 
 
-	Lights<8> show(500, "Carol_of_the_bells.csv");
+
+
+	Lights<8> show(50);
 
 	std::cout << "Test" << std::endl;
 
 
-	show.startShow(500);
+	
+	show.startShow("Carol_of_the_bells.csv",4000);
 
-
+//	show.runTest();
 
 
 	
@@ -43,17 +44,4 @@ int main(int argc, const char** argv)
 	}
 	
 
-	while(true)
-	{
-
-	digitalWrite(4, HIGH);
-
-	delay(500);
-
-	digitalWrite(4, LOW);
-
-	delay(500);
-
-	}
-	
 }

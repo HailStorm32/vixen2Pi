@@ -11,15 +11,50 @@ class Lights
 {
 
 public:
-	Lights(int delayTime, std::string vixenFile)
+	Lights(int usrFileTiming = 25, int usrDelayAdj = 0)
 	{
-		this->delayTime = delayTime;
-		this->vixenFile = vixenFile;
+		wiringPiSetup();
+
+		//Setup the pins we need
+		for(int indx = 0; indx != NUM_CHANNELS; indx++)
+		{
+			pinMode(indx,OUTPUT);
+		}
+
+		//Turn all the lights off
+		for(int indx = 0; indx != NUM_CHANNELS; indx++)
+		{
+			digitalWrite(indx, OFF);
+		}
+
+		//Check bounds of usrFileTiming
+		if(usrFileTiming == 25 || usrFileTiming == 50 || usrFileTiming == 100)
+		{
+			fileTiming = usrFileTiming;
+		}
+		else
+		{
+			std::cout << "\n\nWARNING: Given fileTiming value: " << usrFileTiming << ", is out of bounds. Reverting back to default value of: 25" << std::endl;
+		}
+
+		//Check bounds of usrDelayAdj
+		if((fileTiming - usrDelayAdj) >= 0)
+		{
+			delayAdj = usrDelayAdj;
+		}
+		else
+		{
+			std::cout << "\n\nWARNING: Given delayAdj value: " << usrDelayAdj << ", results in a negative result. Reverting back to default value of: 0" << std::endl;
+			delayAdj = 0;
+		}
 	}
 
 
-	bool startShow(int startDelay = 0)
+	bool startShow(std::string vixenFile,int startDelay = 0)
 	{
+		
+		this->vixenFile = vixenFile;
+
 		//If there is a delay, run it
 		if(startDelay > 0)
 		{
@@ -28,15 +63,83 @@ public:
 			std::this_thread::sleep_for(std::chrono::milliseconds(startDelay)); 
 		}	
 
-		parseFile();
+		if(!parseFile())
+		{
+			std::cout << "\n\nParsing '" << vixenFile << "' failed, cant continue" << std::endl;
+			return false;
+		}
+		
+		std::cout << "\n\nStarting show..." << std::endl;//DEBUG
+		std::cout << "4..." << std::endl;//DEBUG
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));//DEBUG
+		std::cout << "3..." << std::endl;//DEBUG
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));//DEBUG 
+		std::cout << "2..." << std::endl;//DEBUG
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));//DEBUG 
+		std::cout << "1..." << std::endl;//DEBUG	
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));//DEBUG 
+		std::cout << "START" << std::endl;//DEBUG
+//		std::this_thread::sleep_for(std::chrono::milliseconds(200));//DEBUG 
+
+		
+
+		for(int indx = 0; indx != parsedFile.size(); indx++)
+		{
+			for(int chIndx = 0; chIndx != NUM_CHANNELS; chIndx++)
+			{
+				if(parsedFile[indx][chIndx] == 255)
+				{
+					digitalWrite(ch2PinMap[chIndx], ON);
+				}	
+				else if(parsedFile[indx][chIndx] == 0)
+				{
+					digitalWrite(ch2PinMap[chIndx], OFF);
+				}
+				else
+				{
+					std::cout << "\n\nNot setup for values in between 0 & 255. Please edit startShow in Lights.h to allow for in between values." << std::endl;
+					return false;
+				}
+			}
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(fileTiming-delayAdj)); 
+		}
+
+		std::cout << "Show finished" << std::endl;
 
 		return true;
 	}
 
 
+	void runTest()
+	{
+		for(int indx = 0; indx != NUM_CHANNELS; indx++)
+		{
+			digitalWrite(indx, ON);
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(700)); 
+		}
+		
+		std::this_thread::sleep_for(std::chrono::milliseconds(2000)); 
+
+		for(int indx = NUM_CHANNELS - 1; indx != -1; indx--)
+		{
+			digitalWrite(indx, OFF);
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(700)); 
+		}
+	}
+
+
 private:
 	//Varibles
-	int delayTime;
+	
+	const bool ON = true; 
+	const bool OFF = false;
+
+	int fileTiming;
+	int delayAdj;
+	int ch2PinMap[NUM_CHANNELS] = {0,1,2,3,4,5,6,7};//What channel correlates to what pin#
 	const int MAX_CHAR_LIMIT = ((NUM_CHANNELS * 3) + (NUM_CHANNELS - 1)+2);
 	std::fstream csv;
 
@@ -48,11 +151,12 @@ private:
 	bool parseFile()
 	{
 		std::array<int,NUM_CHANNELS> lineValues = {}; //int lineValues[NUM_CHANNELS] = {};
-		//std::array<char,4> lineData = {};//char lineData[MAX_CHAR_LIMIT] = {};
 		std::string lineData = "";
 		std::string str2int = "";
 		int charCnt = 0;//keeps track of how many characters we encountered since the last comma
 		int chIndx = 0;
+
+		std::cout << "Parsing '" << vixenFile << "'..." << std::endl;
 
 		csv.open(vixenFile);
 
@@ -66,8 +170,6 @@ private:
 		while(!csv.eof())
 		{
 			std::getline(csv, lineData);
-
-			std::cout << lineData << std::endl;
 
 			//Make sure we didnt reach the char limit
 			if(csv.fail())
@@ -90,13 +192,11 @@ private:
 				}
 				else if(!(lineData[indx] >= 48 && lineData[indx] <= 57) && charCnt < 3)
 				{
-					std::cout << "ERROR: Found '" << lineData[indx] << "' in " << vixenFile << ", expected a number value at beginning of line" << std::endl;
+					std::cout << "ERROR: Found '" << lineData[indx] << "' in " << vixenFile << ", expected a number value" << std::endl;
 					return false;
 				}
 				else if(!(lineData[indx] >= 48 && lineData[indx] <= 57) && charCnt == 3)//If not a number and we have already read the 3 chars, then its a comma
 				{
-					std::cout << "Reached Comma" << std::endl;
-
 					lineValues[chIndx] = std::stoi(str2int);//take the value we got and store it with the other values for this line
 				
 					chIndx++;
@@ -117,7 +217,7 @@ private:
 			charCnt = 0;
 		}
 		
-		//DEBUG
+	/*	//DEBUG
 		std::cout << "\n\n\nFULL VECTOR" << std::endl;
 		for(int indx = 0; indx != parsedFile.size(); indx++)
 		{
@@ -127,8 +227,9 @@ private:
 			}
 			std::cout << std::endl;
 		}
-		std::cout << "\nDone" << std::endl;
+		std::cout << "\nDone" << std::endl;*/
 
+		std::cout << "\nDone parsing '" <<  vixenFile << "'" << std::endl;
 		return true;
 	}
 };
