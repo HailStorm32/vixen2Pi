@@ -26,6 +26,8 @@ public:
 		{
 			digitalWrite(indx, OFF);
 		}
+		
+		isLightsOn = false;
 
 		//Check bounds of usrFileTiming
 		if(usrFileTiming == 25 || usrFileTiming == 50 || usrFileTiming == 100)
@@ -48,7 +50,11 @@ public:
 			delayAdj = 0;
 		}
 	}
-
+	
+	bool lightsState()
+	{
+		return isLightsOn;
+	}
 
 	bool startShow(std::string vixenFile,int startDelay = 0)
 	{
@@ -70,7 +76,7 @@ public:
 		}
 		
 		std::cout << "\n\nStarting show..." << std::endl;//DEBUG
-		std::cout << "4..." << std::endl;//DEBUG
+	/*	std::cout << "4..." << std::endl;//DEBUG
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));//DEBUG
 		std::cout << "3..." << std::endl;//DEBUG
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));//DEBUG 
@@ -79,9 +85,11 @@ public:
 		std::cout << "1..." << std::endl;//DEBUG	
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));//DEBUG 
 		std::cout << "START" << std::endl;//DEBUG
-//		std::this_thread::sleep_for(std::chrono::milliseconds(200));//DEBUG 
+//		std::this_thread::sleep_for(std::chrono::milliseconds(200));//DEBUG */ 
 
+		std::thread second(system,"mpv carolOfTheBells.mp3");		
 		
+		std::this_thread::sleep_for(std::chrono::milliseconds(4850));//We wait to long, shorten by like 150ms was 5000 
 
 		for(int indx = 0; indx != parsedFile.size(); indx++)
 		{
@@ -111,36 +119,62 @@ public:
 	}
 
 
-	void runTest()
+	bool setState(const int state)
 	{
-		for(int indx = 0; indx != NUM_CHANNELS; indx++)
+		switch(state)
 		{
-			digitalWrite(indx, ON);
+		case 0://Turn all lights OFF
+			for(int indx = 0; indx != NUM_CHANNELS; indx++)
+			{
+				digitalWrite(indx, OFF);
+			}
+			isLightsOn = false;
+			break;
+		case 1://Turn all lights ON
+			for(int indx = 0; indx != NUM_CHANNELS; indx++)
+			{
+				digitalWrite(indx, ON);
+			}
+			isLightsOn = true;
+			break;
+		case 2://Sweep lights once
+			for(int indx = 0; indx != NUM_CHANNELS; indx++)
+			{
+				digitalWrite(indx, ON);
+	
+				std::this_thread::sleep_for(std::chrono::milliseconds(700)); 
+			}
+			isLightsOn = true;		
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(700)); 
+			std::this_thread::sleep_for(std::chrono::milliseconds(2000)); 
+
+			for(int indx = NUM_CHANNELS - 1; indx != -1; indx--)
+			{
+				digitalWrite(indx, OFF);
+	
+				std::this_thread::sleep_for(std::chrono::milliseconds(700)); 
+			}
+			isLightsOn = false;
+			break;
+		default:
+			std::cout << "\n\nERROR: '" << state << "' not a valid state" << std::endl;
+			return 0;
 		}
-		
-		std::this_thread::sleep_for(std::chrono::milliseconds(2000)); 
-
-		for(int indx = NUM_CHANNELS - 1; indx != -1; indx--)
-		{
-			digitalWrite(indx, OFF);
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(700)); 
-		}
+		return 1;
 	}
 
 
 private:
 	//Varibles
 	
-	const bool ON = true; 
-	const bool OFF = false;
+	const bool ON = false; 
+	const bool OFF = true;
 
 	int fileTiming;
 	int delayAdj;
 	int ch2PinMap[NUM_CHANNELS] = {0,1,2,3,4,5,6,7};//What channel correlates to what pin#
 	const int MAX_CHAR_LIMIT = ((NUM_CHANNELS * 3) + (NUM_CHANNELS - 1)+2);
+	bool isLightsOn;
 	std::fstream csv;
 
 	std::string vixenFile;
@@ -174,7 +208,7 @@ private:
 			//Make sure we didnt reach the char limit
 			if(csv.fail())
 			{
-				std::cout << "ERROR: failbit fliped in file: "<< vixenFile << std::endl;
+			//	std::cout << "ERROR: failbit fliped in file: "<< vixenFile << std::endl;
 				//return false;
 			}
 			
@@ -209,7 +243,6 @@ private:
 			parsedFile.push_back(lineValues);
 
 			//Reset variables before going to the next line
-			//lineData.fill('-');
 			lineData = "";
 			lineValues.fill(0);
 			str2int = "";
