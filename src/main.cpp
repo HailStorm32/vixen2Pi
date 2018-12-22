@@ -62,6 +62,31 @@ int main(int argc, const char** argv)
 			theTime = localtime(&unxTime);
 		}
 	}
+	else if(strcmp(argv[1], "debug") == 0)
+	{
+		if(argc < 6)
+		{
+			std::cout << "\nERROR: Need more arguments for command" << argv[1] << std::endl;
+			return 0;
+		}
+
+		int fileTime = std::stoi(argv[2]);
+		int delayAdj = std::stoi(argv[4]);
+		int mpvWaitTime = std::stoi(argv[3]);
+
+		std::cout << "fileTiming:  " << fileTime << " | delayAdj: " << delayAdj << " | mpvWait: " << mpvWaitTime << std::endl;
+
+		Lights<8> debugShow(fileTime, delayAdj);
+
+		if(fileTime == 25)
+		{
+			debugShow.startShow(argv[5], 2000, mpvWaitTime);
+		}
+		else
+		{
+			debugShow.startShow("Carol_of_the_bells.csv", 2000, mpvWaitTime);
+		}
+	}
 	else
 	{
 		std::cout << "ERROR: Invalid argument: '" << argv[1] << "'" << std::endl;

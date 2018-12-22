@@ -7,6 +7,9 @@ SRC_DIR=src
 #Path to .o files
 OBJ_DIR=$(SRC_DIR)/obj
 
+#Path to cross compiler libraries
+RPI_LIB_DIR=/usr/arm-linux-gnueabihf/lib
+
 #Path to libraries
 LDIR=contrib
 
@@ -22,7 +25,7 @@ OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 #All .h files
 HEADERS=$(wildcard $(IDIR)/*.h)
 
-WIRPI_LIBS =-L/usr/arm-linux-gnueabihf/lib -lm -lpthread -lrt -lcrypt
+WIRPI_LIBS =-L$(RPI_LIB_DIR) -lm -lpthread -lrt -lcrypt
 TARGET=arm-linux-gnueabihf-
 CXX=$(TARGET)g++
 CC=$(TARGET)gcc

@@ -56,7 +56,7 @@ public:
 		return isLightsOn;
 	}
 
-	bool startShow(std::string vixenFile,int startDelay = 0)
+	bool startShow(std::string vixenFile,int startDelay = 0,int mpvWaitTime = 4850)
 	{
 		
 		this->vixenFile = vixenFile;
@@ -89,7 +89,7 @@ public:
 
 		std::thread second(system,"mpv carolOfTheBells.mp3");		
 		
-		std::this_thread::sleep_for(std::chrono::milliseconds(4850));//We wait to long, shorten by like 150ms was 5000 
+		std::this_thread::sleep_for(std::chrono::milliseconds(mpvWaitTime)); 
 
 		for(int indx = 0; indx != parsedFile.size(); indx++)
 		{
