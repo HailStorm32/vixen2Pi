@@ -44,9 +44,13 @@ $(warning $(SRC))
 all: $(EXE)
 
 $(EXE): $(OBJ) | wiringPi
+ifeq ($(TARGET), arm-linux-gnueabihf-)
 	ln -s ~/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so* ~/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so
 	$(CXX) -o $@ $^ $(LDFLAGS)
 	rm ~/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so
+else
+	$(CXX) -o $@ $^ $(LDFLAGS)
+endif
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -55,7 +59,7 @@ wiringPi:
 ifeq ($(TARGET), arm-linux-gnueabihf-)
 		make -C $(WIR_PI_DIR) CC=$(CC) LIBS=$(WIRPI_LIBS)
 else
-		make -C $(WIR_PI_DIR)
+		#make -C $(WIR_PI_DIR)
 endif
 
 clean:

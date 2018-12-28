@@ -12,7 +12,7 @@ int main(int argc, const char** argv)
 	}
 
 	////////// SETUP ///////////
-	Lights<8> show(50);
+	Lights<8> show(25);
 
 	bool isLightsOn = false;
 	const int OFF_TIME = 8;
@@ -31,7 +31,7 @@ int main(int argc, const char** argv)
 	
 	if(strcmp(argv[1], "show") == 0)
 	{
-		show.startShow("Carol_of_the_bells.csv",4000);
+		show.startShow("Carol_of_the_bells_300_500_100.csv",2000, 4510);
 	}
 	else if(strcmp(argv[1], "run") == 0)
 	{
