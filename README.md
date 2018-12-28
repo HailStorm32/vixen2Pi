@@ -20,7 +20,7 @@ There are two ways to setup and compile. The first, and default way, is to cross
 2. In the cloned directory run `git submodule init` then `git submodule update`
 3. Make a directory called `obj` in the `src` directory. Your resulting path should look like this `vixen2Pi/src/obj`
 4. Open the Makefile, and change the `TARGET` variable by commenting out its value like so `TARGET=#arm-linux-gnueabinf-`
-5. Install wiringPi by navigating to `contrib/wiringPi/wiringPi` and running `sudo ./build`
+5. Install wiringPi by navigating to `contrib/wiringPi` and running `sudo ./build`
 6. After the above has been done, run `make` in the root directory of the project to compile and build the project
 7. See <i>Running and using vixen2Pi</i> for more information on running the executable
 
