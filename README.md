@@ -27,4 +27,19 @@ There are two ways to setup and compile. The first, and default way, is to cross
 <br>
 
 ## Running and using vixen2Pi
-Coming soon
+
+Make sure the executable, CSV file, and mp3 are in the same directory before running vixen2Pi.
+
+To use vixen2Pi you will need to use the Lights class. The Lights class is setup the following way 
+```
+Lights<NUM_OF_CHANNELS> CLASS_NAME(FILE_TIMING)
+``` 
+with `FILE_TIMING` being the interval timing set when exporting the Vixen sequence.
+
+Next, to start the show, call `startShow` with the following parameters
+```
+NAME_OF_CLASS.startShow(NAME_OF_CSV, NAME_OF_MP3, START_DELAY, MPV_WAIT_TIME)
+```
+`START_DELAY` being how long of a delay (in milliseconds) before starting the show (default is 0ms)
+<br>`MPV_WAIT_TIME` being how long to wait (in milliseconds) after starting starting mpv. This requires some trial and error.
+><i>This is needed due to mpv taking some time to boot, but I plan on eliminating this problem in the future</i>
