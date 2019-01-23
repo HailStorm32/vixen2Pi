@@ -31,7 +31,7 @@ int main(int argc, const char** argv)
 	
 	if(strcmp(argv[1], "show") == 0)
 	{
-		show.startShow("Carol_of_the_bells_300_500_100.csv",2000, 4510);
+		show.startShow("Carol_of_the_bells_300_500_100.csv", "carolOfTheBells.mp3", 2000, 4510);
 	}
 	else if(strcmp(argv[1], "run") == 0)
 	{
@@ -80,11 +80,11 @@ int main(int argc, const char** argv)
 
 		if(fileTime == 25)
 		{
-			debugShow.startShow(argv[5], 2000, mpvWaitTime);
+			debugShow.startShow(argv[5],"carolOfTheBells.mp3", 2000, mpvWaitTime);
 		}
 		else
 		{
-			debugShow.startShow("Carol_of_the_bells.csv", 2000, mpvWaitTime);
+			debugShow.startShow("Carol_of_the_bells.csv", "carolOfTheBells.mp3", 2000, mpvWaitTime);
 		}
 	}
 	else
