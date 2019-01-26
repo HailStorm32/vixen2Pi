@@ -15,7 +15,7 @@ There are two ways to setup and compile. The first, and default way, is to cross
 6. Transfer the executable to the pi by running `scp vixen2Pi PI_IP_ADDR:`
 7. On the Pi, install wiringPi by following the instructions <a href="http://wiringpi.com/download-and-install/">here</a>
 8. Once wiringPi is installed, you can remove the wiringPi repo that was cloned
-9. See <a href="custom-id">Running and using vixen2Pi</a> for more information on running the executable
+9. See <a href="https://github.com/HailStorm32/vixen2Pi#running-and-using-vixen2Pi">Running and using vixen2Pi</a> for more information on running the executable
 
 ##### Compiling on the Pi:
 
@@ -25,8 +25,9 @@ There are two ways to setup and compile. The first, and default way, is to cross
 4. Open the Makefile, and change the `TARGET` variable by commenting out its value like so `TARGET=#arm-linux-gnueabinf-`
 5. Install wiringPi by navigating to `contrib/wiringPi` and running `sudo ./build`
 6. After the above has been done, run `make` in the root directory of the project to compile and build the project
-7. See <a href="custom-id">Running and using vixen2Pi</a> for more information on running the executable
+7. See <a href="https://github.com/HailStorm32/vixen2Pi#running-and-using-vixen2Pi">Running and using vixen2Pi</a> for more information on running the executable
 
+<br>
 
 ### Audio Setup:
 Once you have setup your compile environent, now you need to setup the Pi to play audio through the HDMI port.
@@ -45,7 +46,7 @@ hdmi_force_edid_audio=1
 <br>
 
 
-<h2 id="running-and-using">Running and using vixen2Pi</h2>
+## Running and using vixen2Pi
 
 Make sure the executable, CSV file, and mp3 are in the same directory before running vixen2Pi.
 
