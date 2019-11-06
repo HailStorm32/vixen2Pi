@@ -1,3 +1,7 @@
+See the vixenPi setup in action: <a href="https://youtu.be/kdkh6msmvUg">https://youtu.be/kdkh6msmvUg</a>
+
+
+
 ## Setup:
 
 
