@@ -45,9 +45,9 @@ all: $(EXE)
 
 $(EXE): $(OBJ) | wiringPi
 ifeq ($(TARGET), arm-linux-gnueabihf-)
-	ln -s ~/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so* ~/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so
+	ln -s ~/Projects/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so* ~/Projects/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so
 	$(CXX) -o $@ $^ $(LDFLAGS)
-	rm ~/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so
+	rm ~/Projects/vixen2Pi/$(WIR_PI_DIR)/libwiringPi.so
 else
 	$(CXX) -o $@ $^ $(LDFLAGS)
 endif

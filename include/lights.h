@@ -95,9 +95,9 @@ public:
 		
 		std::this_thread::sleep_for(std::chrono::milliseconds(mpvWaitTime)); 
 
-		for(int indx = 0; indx != parsedFile.size(); indx++)
+		for(int indx = 0; indx != parsedFile.size(); indx++) //Iterate through the vector
 		{
-			for(int chIndx = 0; chIndx != NUM_CHANNELS; chIndx++)
+			for(int chIndx = 0; chIndx != NUM_CHANNELS; chIndx++) //Inerate through the array
 			{
 				if(parsedFile[indx][chIndx] == 255)
 				{
