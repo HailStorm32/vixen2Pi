@@ -1,6 +1,9 @@
 #include "lights.h"
+#include <fstream>
+#include <string>
 #include <time.h>
 #include <cstring>
+#include <unistd.h>
 
 int main(int argc, const char** argv)
 {	
@@ -35,7 +38,45 @@ int main(int argc, const char** argv)
 	}
 	else if(strcmp(argv[1], "run") == 0)
 	{
-		show.setState(1);//turn lights on	
+        std::cout << "Starting show" << std::endl;
+        std::string word = "read";
+        std::string fileContents;
+        std::ofstream fileWrite;
+        std::ifstream fileRead;
+
+        while(true)
+        {
+            fileRead.open("/var/www/villardlight.show/public/showStart.txt");
+            if(!fileRead.is_open())
+            {
+                std::cout << "File not open" << std::endl;
+            }
+            
+            std::getline(fileRead, fileContents);
+            fileRead.close();
+
+            if(fileContents == "start")
+            {
+                fileWrite.open("/var/www/villardlight.show/public/showStart.txt");
+                if(!fileWrite.is_open())
+                {
+                    std::cout << "File not open" << std::endl;
+                }
+                
+                fileWrite.write(word.c_str(), word.length()); 
+                fileWrite.close();
+                std::cout << "ran show" << std::endl;
+                std::cout << fileContents << std::endl;
+			    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+            }
+            
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            std::cout << "looping" << std::endl;
+        }
+
+
+
+		/*show.setState(1);//turn lights on	
 
 		while(true)
 		{
@@ -51,16 +92,12 @@ int main(int argc, const char** argv)
 				std::cout << "Turning ON: " << theTime->tm_hour << ":" << theTime->tm_min << std::endl;//DEBUG
 				show.setState(1);
 			}
-		/*	else if()
-			{
 
-			}*/
-			
 			std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 			
 			unxTime = time(NULL);
 			theTime = localtime(&unxTime);
-		}
+		}*/
 	}
 	else if(strcmp(argv[1], "debug") == 0)
 	{
