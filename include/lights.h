@@ -58,11 +58,6 @@ public:
 
 	bool startShow(std::string vixenFile, std::string mp3File,int startDelay = 0,int mpvWaitTime = 4850)
 	{
-		
-		this->vixenFile = vixenFile;
-
-		std::string command = "mpv ";
-
 		//If there is a delay, run it
 		if(startDelay > 0)
 		{
@@ -71,12 +66,6 @@ public:
 			std::this_thread::sleep_for(std::chrono::milliseconds(startDelay)); 
 		}	
 
-		if(!parseFile())
-		{
-			std::cout << "\n\nParsing '" << vixenFile << "' failed, cant continue" << std::endl;
-			return false;
-		}
-		
 		std::cout << "\n\nStarting show..." << std::endl;//DEBUG
 	/*	std::cout << "4..." << std::endl;//DEBUG
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));//DEBUG
@@ -89,12 +78,8 @@ public:
 		std::cout << "START" << std::endl;//DEBUG
 //		std::this_thread::sleep_for(std::chrono::milliseconds(200));//DEBUG */ 
 
-		command = command + mp3File;
 
-		std::thread second(system, command.c_str());		
 		
-		std::this_thread::sleep_for(std::chrono::milliseconds(mpvWaitTime)); 
-
 		for(int indx = 0; indx != parsedFile.size(); indx++) //Iterate through the vector
 		{
 			for(int chIndx = 0; chIndx != NUM_CHANNELS; chIndx++) //Inerate through the array
@@ -118,6 +103,8 @@ public:
 		}
 
 		std::cout << "Show finished" << std::endl;
+        
+        setState(0);
 
 		return true;
 	}
@@ -167,27 +154,9 @@ public:
 		return 1;
 	}
 
-
-private:
-	//Varibles
-	
-	const bool ON = false; 
-	const bool OFF = true;
-
-	int fileTiming;
-	int delayAdj;
-	int ch2PinMap[NUM_CHANNELS] = {0,1,2,3,4,5,6,7};//What channel correlates to what pin#
-	const int MAX_CHAR_LIMIT = ((NUM_CHANNELS * 3) + (NUM_CHANNELS - 1)+2);
-	bool isLightsOn;
-	std::fstream csv;
-
-	std::string vixenFile;
-
-	std::vector<std::array<int,NUM_CHANNELS>> parsedFile;
-		
-	
-	bool parseFile()
+	bool parseFile(std::string vixenFile)
 	{
+		this->vixenFile = vixenFile;
 		std::array<int,NUM_CHANNELS> lineValues = {}; //int lineValues[NUM_CHANNELS] = {};
 		std::string lineData = "";
 		std::string str2int = "";
@@ -269,6 +238,25 @@ private:
 		std::cout << "\nDone parsing '" <<  vixenFile << "'" << std::endl;
 		return true;
 	}
+
+private:
+	//Varibles
+	
+	const bool ON = false; //false 
+	const bool OFF = true; //true
+
+	int fileTiming;
+	int delayAdj;
+	int ch2PinMap[NUM_CHANNELS] = {0,1,2,3,4,5,6,7};//What channel correlates to what pin#
+	const int MAX_CHAR_LIMIT = ((NUM_CHANNELS * 3) + (NUM_CHANNELS - 1)+2);
+	bool isLightsOn;
+	std::fstream csv;
+
+	std::string vixenFile;
+
+	std::vector<std::array<int,NUM_CHANNELS>> parsedFile;
+		
+	
 };
 
 
