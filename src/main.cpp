@@ -10,8 +10,7 @@ int main(int argc, const char** argv)
 	//make sure we have at least one argument, the file name counts as one
 	if(argc < 2)
 	{
-		std::cout << "ERROR: Need at least 1 argument. Running default." << std::endl;
-		//return 0;
+		std::cout << "WARNING: Need at least 1 argument. Running default." << std::endl;
         argv[1] = "run";
 	}
 
@@ -26,13 +25,30 @@ int main(int argc, const char** argv)
 	const int ON_TIME = 16;
 	const int NUM_SHOWS = 3;
 	const int SHOW_TIMES[NUM_SHOWS] = {};
+    const std::string FILE_PATHS [2] = {"/var/www/villardlight.show/public/variables.txt", "/var/www/villardlight.show/public/showStart.txt"};
 
 	//Setup the time variables
 	time_t unxTime = time(NULL);
 	struct tm *theTime = localtime(&unxTime);
 
-	
-	
+    /////////FILE VARIABLE RESET///////
+    std::fstream file;
+    std::string resetData = "000000000000000";
+
+    for(int i = 0; i !=2; i++)
+    {
+	    file.open(FILE_PATHS[i]);
+
+	    //Return error if cant open file
+	    if(!file.is_open())
+    	{
+	    	std::cout << "ERROR: Cant open file: " << FILE_PATHS[i] << std::endl;
+    	}
+
+        file.write(resetData.c_str(),resetData.size());
+        file.close();
+    }
+
 	
 	///////// CODE ////////////	
 	
