@@ -10,11 +10,8 @@ OBJ_DIR=$(SRC_DIR)/obj
 #Path to cross compiler libraries
 RPI_LIB_DIR=/usr/arm-linux-gnueabihf/lib
 
-#Path to libraries
-LDIR=contrib
-
 #Path to wiringPi lib
-WIR_PI_DIR=$(LDIR)/wiringPi/wiringPi
+WIR_PI_DIR=contrib/wiringPi/wiringPi
 
 #All .cpp files
 SRC = $(wildcard $(SRC_DIR)/*.cpp)
@@ -25,20 +22,20 @@ OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 #All .h files
 HEADERS=$(wildcard $(IDIR)/*.h)
 
-WIRPI_LIBS =-L$(RPI_LIB_DIR) -lm -lpthread -lrt -lcrypt
+WIRPI_LIBS =-L$(RPI_LIB_DIR) -lm -lpthread -lrt -lcrypt -lssl -lcrypto -lz -ldl
 TARGET=arm-linux-gnueabihf-
 CXX=$(TARGET)g++
 CC=$(TARGET)gcc
-CXXFLAGS=-std=c++17 -g -I$(IDIR) -I$(WIR_PI_DIR)
-LDFLAGS= -L$(WIR_PI_DIR) -lwiringPi $(WIRPI_LIBS)
+CXXFLAGS=-std=c++17 -g -I$(IDIR) -I$(WIR_PI_DIR) 
+LDFLAGS= -L$(WIR_PI_DIR) -lwiringPi $(WIRPI_LIBS) -L/usr/arm-linux-gnueabihf/include/mysql -lmysqlclient  
 EXE=vixen2Pi
 
 .PHONY: all clean wiringPi
 
 #debug variable prints
-$(warning $(HEADERS))
-$(warning $(OBJ))
-$(warning $(SRC))
+##$(warning $(HEADERS))
+##$(warning $(OBJ))
+##$(warning $(SRC))
 #$(warning $(LDFLAGS))
 
 all: $(EXE)
@@ -59,7 +56,7 @@ wiringPi:
 ifeq ($(TARGET), arm-linux-gnueabihf-)
 		make -C $(WIR_PI_DIR) CC=$(CC) LIBS=$(WIRPI_LIBS)
 else
-		#make -C $(WIR_PI_DIR)
+		make -C $(WIR_PI_DIR)
 endif
 
 clean:

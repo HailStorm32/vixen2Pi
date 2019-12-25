@@ -1,9 +1,13 @@
 #include "lights.h"
+#include "config.h"
 #include <fstream>
 #include <string>
 #include <time.h>
 #include <cstring>
 #include <unistd.h>
+#include <mysql/mysql.h>
+
+
 
 int main(int argc, const char** argv)
 {	
@@ -16,7 +20,34 @@ int main(int argc, const char** argv)
 
 	////////// SETUP ///////////
 	Lights<8> show(25);
+    MYSQL *sqlConn;
+    MYSQL_RES *sqlResult;
+    MYSQL_ROW sqlRow;
+
+    sqlConn = mysql_init(NULL);
     
+    sqlConn = mysql_real_connect(sqlConn, DB_IP.c_str(), DB_USER.c_str(), DB_PASS.c_str(), DB_NAME.c_str(), 8080, NULL,0);
+
+    if(!sqlConn)
+    {
+        std::cout << "ERROR: cant connect to SQL database!" << std::endl;
+        mysql_close(sqlConn);
+        return 1;
+    }
+
+    mysql_query(sqlConn, "SELECT * FROM channels");
+
+    sqlResult = mysql_store_result(sqlConn);
+
+    while((sqlRow = mysql_fetch_row(sqlResult)) != NULL)
+    {
+        for(int i = 0; i < mysql_num_fields(sqlResult); i++)
+        {
+            std::cout << sqlRow[i] << std::endl;
+        }
+    }
+    mysql_free_result(sqlResult);
+
     show.parseFile("/home/showrunner/Carol_of_the_bells_300_500_100.csv");
 
 
@@ -112,6 +143,9 @@ int main(int argc, const char** argv)
 			theTime = localtime(&unxTime);
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+            ////
+
 		}
 	}
 	else if(strcmp(argv[1], "debug") == 0)
