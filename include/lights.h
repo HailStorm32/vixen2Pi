@@ -114,11 +114,10 @@ public:
 	{
         if(state != 1 && state != 0)
         {
-			std::cout << "\n\nERROR: '" << state << "' not a valid state" << std::endl;
+			std::cout << "ERROR: '" << state << "' not a valid state" << std::endl;
             return false;
         }
 
-        //TODO condense into a for loop
         if(channel == "ch1")
         {
             if(state == 1)

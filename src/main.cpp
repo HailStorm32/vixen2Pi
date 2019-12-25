@@ -8,6 +8,64 @@
 #include <mysql/mysql.h>
 
 
+bool updateDB(MYSQL *sqlConn, int state, std::string channel)
+{
+    MYSQL_RES *sqlResult;
+    MYSQL_ROW sqlRow;
+    std::string query;
+    std::string stateStr;
+
+    if(!sqlConn)
+    {
+        std::cout << "ERROR: updateDB cant connect to SQL database!" << std::endl;
+        mysql_close(sqlConn);
+        return 1;
+    }
+    
+    if(state <= 0)
+    {
+        stateStr = "off";
+    }
+    else
+    {
+        stateStr = "on";
+    }
+
+    if(channel == "all")
+    {
+        for(int indx = 1; indx < 9; indx++)
+        {
+            channel = "ch" + std::to_string(indx);
+
+            query = "UPDATE channels SET state = '" + stateStr + 
+                "' WHERE channel = '" + channel + "'";
+
+            //std::cout << query << std::endl;//DEBUG
+
+            if(mysql_query(sqlConn, query.c_str()))
+            {
+                 std::cout << "ERROR: sql query failed in updateDB on pass " 
+                     << indx << " !" << std::endl;
+                 mysql_close(sqlConn);
+                 return false;
+            }
+        }
+    }
+    else
+    {
+        query = "UPDATE channels SET state = '" + stateStr + 
+            "' WHERE channel = '" + channel + "'";
+
+        if(mysql_query(sqlConn, query.c_str()))
+        {
+             std::cout << "ERROR: sql query failed in updateDB!" << std::endl;
+             mysql_close(sqlConn);
+             return false;
+        }
+
+    }
+    return true;
+}
 
 int main(int argc, const char** argv)
 {	
@@ -23,18 +81,6 @@ int main(int argc, const char** argv)
     MYSQL *sqlConn;
     MYSQL_RES *sqlResult;
     MYSQL_ROW sqlRow;
-
-    sqlConn = mysql_init(NULL);
-    
-    sqlConn = mysql_real_connect(sqlConn, DB_IP.c_str(), DB_USER.c_str(), DB_PASS.c_str(), DB_NAME.c_str(), 8080, NULL,0);
-
-    if(!sqlConn)
-    {
-        std::cout << "ERROR: cant connect to SQL database!" << std::endl;
-        mysql_close(sqlConn);
-        return 1;
-    }
-
 
     show.parseFile("/home/showrunner/Carol_of_the_bells_300_500_100.csv");
 
@@ -84,9 +130,21 @@ int main(int argc, const char** argv)
         std::string state;
         std::ofstream fileWrite;
         std::ifstream fileRead;
+
+        sqlConn = mysql_init(NULL);
         
+        sqlConn = mysql_real_connect(sqlConn, DB_IP.c_str(), DB_USER.c_str(), DB_PASS.c_str(), DB_NAME.c_str(), 8080, NULL,0);
+
+        if(!sqlConn)
+        {
+            std::cout << "ERROR: cant connect to SQL database!" << std::endl;
+            mysql_close(sqlConn);
+            return 1;
+        }
 
         show.setState(1,"all");//turn lights on
+        updateDB(sqlConn, 1, "all");
+        
 
         while(true)
         {
@@ -113,8 +171,7 @@ int main(int argc, const char** argv)
                 fileWrite.write(word.c_str(), word.length()); 
                 fileWrite.close();
 		        show.startShow("Carol_of_the_bells_300_500_100.csv", "/home/showrunner/carolOfTheBells.mp3", 0, 4510);
-            }
-            
+            } 
 
             //Code for puting lights on a timer when not in a show
 
@@ -123,12 +180,14 @@ int main(int argc, const char** argv)
 			{
 				std::cout << "Turning OFF: " << theTime->tm_hour << ":" << theTime->tm_min << std::endl;//DEBUG
 				show.setState(0,"all");
+                updateDB(sqlConn, 0, "all");
 			}	
 			//Turn on lights if we are in the ON time period, and the lights are off
 			else if((theTime->tm_hour >= ON_TIME || theTime->tm_hour < OFF_TIME) && !show.lightsState())
 			{
 				std::cout << "Turning ON: " << theTime->tm_hour << ":" << theTime->tm_min << std::endl;//DEBUG
 				show.setState(1,"all");
+                updateDB(sqlConn, 1, "all");
 			}
 			
 			unxTime = time(NULL);
@@ -141,6 +200,7 @@ int main(int argc, const char** argv)
            if(mysql_query(sqlConn, "SELECT * FROM channels"))
            {
                 std::cout << "ERROR: sql query failed!" << std::endl;
+                mysql_close(sqlConn);
                 return 1;
            }
 
@@ -163,6 +223,7 @@ int main(int argc, const char** argv)
                     else
                     {
                         std::cout << "ERROR: " << state << " invalid!" << std::endl;   
+                        mysql_close(sqlConn);
                         return 1;
                     }
                 }
@@ -203,11 +264,6 @@ int main(int argc, const char** argv)
 		return 0;
 	}
 	
-
-//	show.runTest();
-
-
-	
-	
-
 }
+
+
