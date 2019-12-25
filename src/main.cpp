@@ -35,18 +35,6 @@ int main(int argc, const char** argv)
         return 1;
     }
 
-    mysql_query(sqlConn, "SELECT * FROM channels");
-
-    sqlResult = mysql_store_result(sqlConn);
-
-    while((sqlRow = mysql_fetch_row(sqlResult)) != NULL)
-    {
-        for(int i = 0; i < mysql_num_fields(sqlResult); i++)
-        {
-            std::cout << sqlRow[i] << std::endl;
-        }
-    }
-    mysql_free_result(sqlResult);
 
     show.parseFile("/home/showrunner/Carol_of_the_bells_300_500_100.csv");
 
@@ -92,13 +80,17 @@ int main(int argc, const char** argv)
         std::cout << "vixen2Pi Started" << std::endl;
         std::string word = "read";
         std::string fileContents;
+        std::string channel;
+        std::string state;
         std::ofstream fileWrite;
         std::ifstream fileRead;
         
-        show.setState(1);//turn lights on
+
+        show.setState(1,"all");//turn lights on
 
         while(true)
         {
+            //TODO convert to using mysql
             //Code for checking the file that tells us to start the show 
             fileRead.open("/var/www/villardlight.show/public/showStart.txt");
             if(!fileRead.is_open())
@@ -130,13 +122,13 @@ int main(int argc, const char** argv)
 			if((theTime->tm_hour >= OFF_TIME && theTime->tm_hour < ON_TIME) && show.lightsState())
 			{
 				std::cout << "Turning OFF: " << theTime->tm_hour << ":" << theTime->tm_min << std::endl;//DEBUG
-				show.setState(0);
+				show.setState(0,"all");
 			}	
 			//Turn on lights if we are in the ON time period, and the lights are off
 			else if((theTime->tm_hour >= ON_TIME || theTime->tm_hour < OFF_TIME) && !show.lightsState())
 			{
 				std::cout << "Turning ON: " << theTime->tm_hour << ":" << theTime->tm_min << std::endl;//DEBUG
-				show.setState(1);
+				show.setState(1,"all");
 			}
 			
 			unxTime = time(NULL);
@@ -144,8 +136,38 @@ int main(int argc, const char** argv)
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-            ////
+            //////////////////////SQL////////////////
 
+           if(mysql_query(sqlConn, "SELECT * FROM channels"))
+           {
+                std::cout << "ERROR: sql query failed!" << std::endl;
+                return 1;
+           }
+
+            sqlResult = mysql_store_result(sqlConn);
+
+            while((sqlRow = mysql_fetch_row(sqlResult)) != NULL)
+            {
+                channel = sqlRow[0];
+                for(int i = 1; i < mysql_num_fields(sqlResult); i++)
+                {
+                    state = sqlRow[i]; 
+                    if(state == "on")
+                    {
+                        show.setState(1,channel);
+                    }
+                    else if(state == "off")
+                    {
+                        show.setState(0,channel);
+                    }
+                    else
+                    {
+                        std::cout << "ERROR: " << state << " invalid!" << std::endl;   
+                        return 1;
+                    }
+                }
+            }
+            mysql_free_result(sqlResult);
 		}
 	}
 	else if(strcmp(argv[1], "debug") == 0)

@@ -104,54 +104,133 @@ public:
 
 		std::cout << "Show finished" << std::endl;
         
-        setState(0);
+        setState(0,"all");
 
 		return true;
 	}
 
 
-	bool setState(const int state)
+	bool setState(const int state, std::string channel)
 	{
-		switch(state)
-		{
-		case 0://Turn all lights OFF
-			for(int indx = 0; indx != NUM_CHANNELS; indx++)
-			{
-				digitalWrite(indx, OFF);
-			}
-			isLightsOn = false;
-			break;
-		case 1://Turn all lights ON
-			for(int indx = 0; indx != NUM_CHANNELS; indx++)
-			{
-				digitalWrite(indx, ON);
-			}
-			isLightsOn = true;
-			break;
-		case 2://Sweep lights once
-			for(int indx = 0; indx != NUM_CHANNELS; indx++)
-			{
-				digitalWrite(indx, ON);
-	
-				std::this_thread::sleep_for(std::chrono::milliseconds(700)); 
-			}
-			isLightsOn = true;		
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(2000)); 
-
-			for(int indx = NUM_CHANNELS - 1; indx != -1; indx--)
-			{
-				digitalWrite(indx, OFF);
-	
-				std::this_thread::sleep_for(std::chrono::milliseconds(700)); 
-			}
-			isLightsOn = false;
-			break;
-		default:
+        if(state != 1 && state != 0)
+        {
 			std::cout << "\n\nERROR: '" << state << "' not a valid state" << std::endl;
-			return 0;
-		}
-		return 1;
+            return false;
+        }
+
+        //TODO condense into a for loop
+        if(channel == "ch1")
+        {
+            if(state == 1)
+            {
+                digitalWrite(0,ON);
+            }
+            else
+            {
+                digitalWrite(0,OFF);
+            }
+        }
+        else if(channel == "ch2")
+        {
+            if(state == 1)
+            {
+                digitalWrite(1,ON);
+            }
+            else
+            {
+                digitalWrite(1,OFF);
+            }
+        }
+        else if(channel == "ch3")
+        {
+            if(state == 1)
+            {
+                digitalWrite(2,ON);
+            }
+            else
+            {
+                digitalWrite(2,OFF);
+            }
+        }
+        else if(channel == "ch4")
+        {
+            if(state == 1)
+            {
+                digitalWrite(3,ON);
+            }
+            else
+            {
+                digitalWrite(3,OFF);
+            }
+        }
+        else if(channel == "ch5")
+        {
+            if(state == 1)
+            {
+                digitalWrite(4,ON);
+            }
+            else
+            {
+                digitalWrite(4,OFF);
+            }
+        }
+        else if(channel == "ch6")
+        {
+            if(state == 1)
+            {
+                digitalWrite(5,ON);
+            }
+            else
+            {
+                digitalWrite(5,OFF);
+            }
+        }
+        else if(channel == "ch7")
+        {
+            if(state == 1)
+            {
+                digitalWrite(6,ON);
+            }
+            else
+            {
+                digitalWrite(6,OFF);
+            }
+        }
+        else if(channel == "ch8")
+        {
+            if(state == 1)
+            {
+                digitalWrite(7,ON);
+            }
+            else
+            {
+                digitalWrite(7,OFF);
+            }
+        }
+        else if(channel == "all")
+        {
+            if(state == 1)
+            {
+                for(int indx = 0; indx != NUM_CHANNELS; indx++)
+                {
+                    digitalWrite(indx, ON);
+                }
+                isLightsOn = true;
+            }
+            else
+            {
+                for(int indx = 0; indx != NUM_CHANNELS; indx++)
+                {
+                    digitalWrite(indx, OFF);
+                }
+                isLightsOn = false;
+            }
+        }
+        else
+        {
+			std::cout << "ERROR: '" << channel << "' not a valid channel" << std::endl;
+        }
+        return true;
 	}
 
 	bool parseFile(std::string vixenFile)
