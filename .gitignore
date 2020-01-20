@@ -3,3 +3,5 @@
 compileAndShip.sh
 vixen2Pi
 config.h
+*.so
+*.so.*

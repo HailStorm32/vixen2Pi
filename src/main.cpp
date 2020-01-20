@@ -8,6 +8,7 @@
 #include <mysql/mysql.h>
 
 
+//TODO make this work for other tabels
 bool updateDB(MYSQL *sqlConn, int state, std::string channel)
 {
     MYSQL_RES *sqlResult;
@@ -65,6 +66,50 @@ bool updateDB(MYSQL *sqlConn, int state, std::string channel)
 
     }
     return true;
+}
+
+bool isSysOn(MYSQL *sqlConn)
+{
+    MYSQL_RES *sqlResult;
+    MYSQL_ROW sqlRow;
+    std::string value;
+    std::string name;
+
+    if(mysql_query(sqlConn, "SELECT * FROM variables"))
+    {
+        std::cout << "ERROR: sql query failed in isSysOn!" << std::endl;
+        mysql_close(sqlConn);
+        while(true){}
+    }
+
+    sqlResult = mysql_store_result(sqlConn);
+
+    while((sqlRow = mysql_fetch_row(sqlResult)) != NULL)
+    {
+        name = sqlRow[0];
+        if(name == "systemState")
+        {
+            value = sqlRow[1];
+            if(value == "on")
+            {
+                mysql_free_result(sqlResult);
+                return true;
+            }
+            else if(value == "off")
+            {
+                mysql_free_result(sqlResult);
+                return false;
+            }
+            else
+            {
+                std::cout << "ERROR: invalid state in isSysOn!" << std::endl;
+                while(true){}
+            }
+
+        }
+    }
+    std::cout << "ERROR: exited loop without return in isSysOn!" << std::endl;
+    while(true){}
 }
 
 int main(int argc, const char** argv)
@@ -197,6 +242,7 @@ int main(int argc, const char** argv)
 
             //////////////////////SQL////////////////
 
+            //Check the DB to update the channels        
            if(mysql_query(sqlConn, "SELECT * FROM channels"))
            {
                 std::cout << "ERROR: sql query failed!" << std::endl;
@@ -229,6 +275,18 @@ int main(int argc, const char** argv)
                 }
             }
             mysql_free_result(sqlResult);
+
+            //Check to make sure we havnt been told to turn off the light system
+            if(isSysOn(sqlConn) == false)
+            {
+                show.setState(0,"all");
+                updateDB(sqlConn, 0, "all");
+
+                while(!isSysOn(sqlConn))
+                {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+                } 
+            }
 		}
 	}
 	else if(strcmp(argv[1], "debug") == 0)
