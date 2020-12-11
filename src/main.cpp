@@ -15,6 +15,7 @@ bool updateDB(MYSQL *sqlConn, int state, std::string channel)
     MYSQL_ROW sqlRow;
     std::string query;
     std::string stateStr;
+    std::string errorMsg;
 
     if(!sqlConn)
     {
@@ -47,6 +48,8 @@ bool updateDB(MYSQL *sqlConn, int state, std::string channel)
             {
                  std::cout << "ERROR: sql query failed in updateDB on pass " 
                      << indx << " !" << std::endl;
+                 errorMsg = mysql_error(sqlConn);
+                 std::cout << errorMsg << std::endl;
                  mysql_close(sqlConn);
                  return false;
             }
@@ -60,6 +63,8 @@ bool updateDB(MYSQL *sqlConn, int state, std::string channel)
         if(mysql_query(sqlConn, query.c_str()))
         {
              std::cout << "ERROR: sql query failed in updateDB!" << std::endl;
+             errorMsg = mysql_error(sqlConn);
+             std::cout << errorMsg << std::endl;
              mysql_close(sqlConn);
              return false;
         }
@@ -74,10 +79,13 @@ bool isSysOn(MYSQL *sqlConn)
     MYSQL_ROW sqlRow;
     std::string value;
     std::string name;
+    std::string errorMsg;
 
     if(mysql_query(sqlConn, "SELECT * FROM variables"))
     {
         std::cout << "ERROR: sql query failed in isSysOn!" << std::endl;
+        errorMsg = mysql_error(sqlConn);
+        std::cout << errorMsg << std::endl;
         mysql_close(sqlConn);
         while(true){}
     }
@@ -175,14 +183,17 @@ int main(int argc, const char** argv)
         std::string state;
         std::ofstream fileWrite;
         std::ifstream fileRead;
+        std::string errorMsg;
 
         sqlConn = mysql_init(NULL);
         
-        sqlConn = mysql_real_connect(sqlConn, DB_IP.c_str(), DB_USER.c_str(), DB_PASS.c_str(), DB_NAME.c_str(), 8080, NULL,0);
+        sqlConn = mysql_real_connect(sqlConn, DB_IP.c_str(), DB_USER.c_str(), DB_PASS.c_str(), DB_NAME.c_str(), DB_PORT, NULL,0);
 
         if(!sqlConn)
         {
             std::cout << "ERROR: cant connect to SQL database!" << std::endl;
+            errorMsg = mysql_error(sqlConn);
+            std::cout << errorMsg << std::endl;
             mysql_close(sqlConn);
             return 1;
         }
@@ -246,6 +257,8 @@ int main(int argc, const char** argv)
            if(mysql_query(sqlConn, "SELECT * FROM channels"))
            {
                 std::cout << "ERROR: sql query failed!" << std::endl;
+                errorMsg = mysql_error(sqlConn);
+                std::cout << errorMsg << std::endl;
                 mysql_close(sqlConn);
                 return 1;
            }
@@ -276,12 +289,14 @@ int main(int argc, const char** argv)
             }
             mysql_free_result(sqlResult);
 
-            //Check to make sure we havnt been told to turn off the light system
+            //Check to make sure we havnt been told to turn off the 
+            //entire light system
             if(isSysOn(sqlConn) == false)
             {
                 show.setState(0,"all");
                 updateDB(sqlConn, 0, "all");
 
+                //wait until we have been told to turn the system back on
                 while(!isSysOn(sqlConn))
                 {
                     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
