@@ -135,68 +135,69 @@ int main(int argc, const char** argv)
     MYSQL_RES *sqlResult;
     MYSQL_ROW sqlRow;
 
-    show.parseFile("/home/showrunner/Carol_of_the_bells_300_500_100.csv");
+    show.parseFile("/home/showrunner/Carol_of_the_bells_300_500_100.csv");//Carol_of_the_bells_300_500_100.csv
 
 
-	bool isLightsOn = false;
 	const int OFF_TIME = 8;
 	const int ON_TIME = 16;
 	const int NUM_SHOWS = 3;
 	const int SHOW_TIMES[NUM_SHOWS] = {};
-    const std::string FILE_PATHS [2] = {"/var/www/villardlight.show/public/variables.txt", "/var/www/villardlight.show/public/showStart.txt"};
+
+	bool isLightsOn = false;
+    bool gotToResult = false;
+    std::string query[2];
+    std::string value;
+    std::string name;
+    std::string errorMsg;
+
+    
+    //Connet to database
+    sqlConn = mysql_init(NULL);
+    sqlConn = mysql_real_connect(sqlConn, DB_IP.c_str(), DB_USER.c_str(), 
+            DB_PASS.c_str(), DB_NAME.c_str(), DB_PORT, NULL,0);
+    if(!sqlConn)
+    {
+        std::cout << "ERROR: cant connect to SQL database!" << std::endl;
+        errorMsg = mysql_error(sqlConn);
+        std::cout << errorMsg << std::endl;
+        mysql_close(sqlConn);
+        return 1;
+    }
 
 	//Setup the time variables
 	time_t unxTime = time(NULL);
 	struct tm *theTime = localtime(&unxTime);
 
     /////////FILE VARIABLE RESET///////
-    std::fstream file;
-    std::string resetData = "000000000000000";
-
-    for(int i = 0; i !=2; i++)
+    query[0] = "UPDATE variables SET value = '0000' WHERE " 
+        "variable = 'showStartAck'";
+    query[1] = "UPDATE variables SET value = '0000' WHERE " 
+        "variable = 'showWaitTime'";
+    for(int i = 0; i <= 1; i++)
     {
-	    file.open(FILE_PATHS[i]);
-
-	    //Return error if cant open file
-	    if(!file.is_open())
-    	{
-	    	std::cout << "ERROR: Cant open file: " << FILE_PATHS[i] << std::endl;
-    	}
-
-        file.write(resetData.c_str(),resetData.size());
-        file.close();
+        if(mysql_query(sqlConn, query[i].c_str()))
+        {
+             std::cout << "ERROR: sql query failed to reset variables on try #:" 
+                 << i+1 << "In main" << std::endl;
+             errorMsg = mysql_error(sqlConn);
+             std::cout << errorMsg << std::endl;
+             mysql_close(sqlConn);
+             return 1;
+        }
     }
-
 	
 	///////// CODE ////////////	
 	
 	if(strcmp(argv[1], "show") == 0)
 	{
-		show.startShow("Carol_of_the_bells_300_500_100.csv", "carolOfTheBells.mp3", 2000, 4510);
+		show.startShow("Carol_of_the_bells_300_500_100.csv", 
+                "carolOfTheBells.mp3", 2000, 4510); //Carol_of_the_bells_300_500_100.csv
 	}
 	else if(strcmp(argv[1], "run") == 0)
 	{
         std::cout << "vixen2Pi Started" << std::endl;
-        std::string word = "read";
-        std::string fileContents;
         std::string channel;
         std::string state;
-        std::ofstream fileWrite;
-        std::ifstream fileRead;
-        std::string errorMsg;
-
-        sqlConn = mysql_init(NULL);
-        
-        sqlConn = mysql_real_connect(sqlConn, DB_IP.c_str(), DB_USER.c_str(), DB_PASS.c_str(), DB_NAME.c_str(), DB_PORT, NULL,0);
-
-        if(!sqlConn)
-        {
-            std::cout << "ERROR: cant connect to SQL database!" << std::endl;
-            errorMsg = mysql_error(sqlConn);
-            std::cout << errorMsg << std::endl;
-            mysql_close(sqlConn);
-            return 1;
-        }
 
         show.setState(1,"all");//turn lights on
         updateDB(sqlConn, 1, "all");
@@ -204,30 +205,67 @@ int main(int argc, const char** argv)
 
         while(true)
         {
-            //TODO convert to using mysql
-            //Code for checking the file that tells us to start the show 
-            fileRead.open("/var/www/villardlight.show/public/showStart.txt");
-            if(!fileRead.is_open())
+            //Code for checking database to see if the show needs to be started 
+            if(mysql_query(sqlConn, "SELECT * FROM variables"))
             {
-                std::cout << "ERROR: Cant open file: /var/www/villardlight.show/public/showStart.txt " << std::endl;
+                std::cout << "ERROR: sql query failed to retrive showStartAck!"
+                    << std::endl;
+                errorMsg = mysql_error(sqlConn);
+                std::cout << errorMsg << std::endl;
+                mysql_close(sqlConn);
+                return 1;
             }
-            
-            std::getline(fileRead, fileContents);
-            fileRead.close();
 
-            if(fileContents == "start")
+            sqlResult = mysql_store_result(sqlConn);
+
+            while((sqlRow = mysql_fetch_row(sqlResult)) != NULL)
             {
-                fileWrite.open("/var/www/villardlight.show/public/showStart.txt");
-                if(!fileWrite.is_open())
+                name = sqlRow[0];
+                if(name == "showStartAck")
                 {
-                    std::cout << "ERROR: Cant open file: /var/www/villardlight.show/public/showStart.txt " << std::endl;
+                    value = sqlRow[1];
+                    if(value == "start")
+                    {
+                        mysql_free_result(sqlResult);
+                        
+                        //Update database to let the server know that 
+                        //we saw their ack and that the show is starting 
+                        query[0] = "UPDATE variables SET value = 'read' " 
+                            "WHERE variable = 'showStartAck'";
+                        if(mysql_query(sqlConn, query[0].c_str()))
+                        {
+                             std::cout << "ERROR: sql query failed to " << 
+                                 "update showStartAck!" << std::endl;
+                             errorMsg = mysql_error(sqlConn);
+                             std::cout << errorMsg << std::endl;
+                             mysql_close(sqlConn);
+                             return 1;
+                        }
+
+		                show.startShow("Carol_of_the_bells_300_500_100.csv", 
+                                "/home/showrunner/carolOfTheBells.mp3", 0, 4510);
+
+                        gotToResult = true;
+                        break; 
+                    }
+                    else
+                    {
+                        mysql_free_result(sqlResult);
+                        gotToResult = true;
+                        break; 
+                    }
                 }
-               
-                //Let the server know that the show is starting 
-                fileWrite.write(word.c_str(), word.length()); 
-                fileWrite.close();
-		        show.startShow("Carol_of_the_bells_300_500_100.csv", "/home/showrunner/carolOfTheBells.mp3", 0, 4510);
-            } 
+            }
+            //Throw an error if we never got to the showStartAck variable
+            if(gotToResult == false)
+            {
+                mysql_free_result(sqlResult);
+                std::cout << "ERROR: exited loop without retreving" <<
+                    " showStartAck" << std::endl;
+                return 1;
+            }
+            gotToResult = false;//reset the flag
+            
 
             //Code for puting lights on a timer when not in a show
 
